@@ -1,0 +1,1531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FF Arena - Free Fire Tournaments</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary: #ff6b00;
+            --secondary: #ff3c00;
+            --accent: #00d4ff;
+            --dark: #0a0a0a;
+            --darker: #050505;
+            --card-bg: rgba(20, 20, 25, 0.95);
+            --success: #00ff88;
+            --warning: #ffd700;
+            --danger: #ff4444;
+        }
+        
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: var(--darker);
+            color: #fff;
+            overflow-x: hidden;
+        }
+        
+        /* Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(255, 107, 0, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 60, 0, 0.1) 0%, transparent 50%);
+        }
+        
+        .grid-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(255, 107, 0, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 107, 0, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: -1;
+        }
+        
+        /* Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1rem 2rem;
+            background: rgba(10, 10, 10, 0.98);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid var(--primary);
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+            align-items: center;
+        }
+        
+        .nav-links a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            padding: 0.5rem 0;
+            transition: color 0.3s;
+            cursor: pointer;
+        }
+        
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary);
+            transition: width 0.3s;
+        }
+        
+        .nav-links a:hover::after, .nav-links a.active::after {
+            width: 100%;
+        }
+        
+        .nav-links a:hover, .nav-links a.active {
+            color: var(--primary);
+        }
+        
+        /* Hidden Admin Button */
+        .admin-secret-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background: transparent;
+            border: 2px solid rgba(255, 107, 0, 0.3);
+            border-radius: 50%;
+            color: rgba(255, 107, 0, 0.5);
+            cursor: pointer;
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            opacity: 0.3;
+        }
+        
+        .admin-secret-btn:hover {
+            opacity: 1;
+            background: rgba(255, 107, 0, 0.1);
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: scale(1.1);
+        }
+        
+        /* Admin Modal */
+        .admin-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 10000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .admin-modal.active {
+            display: flex;
+        }
+        
+        .admin-login-box {
+            background: var(--card-bg);
+            border: 2px solid var(--primary);
+            border-radius: 20px;
+            padding: 2.5rem;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 0 50px rgba(255, 107, 0, 0.3);
+        }
+        
+        .admin-login-box h2 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .admin-login-box p {
+            color: #888;
+            margin-bottom: 2rem;
+        }
+        
+        .pin-input {
+            width: 100%;
+            padding: 1rem;
+            font-size: 2rem;
+            text-align: center;
+            letter-spacing: 1rem;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(255, 107, 0, 0.3);
+            border-radius: 10px;
+            color: var(--primary);
+            font-family: 'Orbitron', sans-serif;
+            margin-bottom: 1.5rem;
+        }
+        
+        .pin-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 20px rgba(255, 107, 0, 0.3);
+        }
+        
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .key-btn {
+            padding: 1.2rem;
+            font-size: 1.3rem;
+            font-weight: 700;
+            background: rgba(255, 107, 0, 0.1);
+            border: 1px solid rgba(255, 107, 0, 0.3);
+            border-radius: 10px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .key-btn:hover {
+            background: var(--primary);
+            transform: translateY(-2px);
+        }
+        
+        .key-btn.clear {
+            background: rgba(255, 68, 68, 0.2);
+            border-color: rgba(255, 68, 68, 0.3);
+        }
+        
+        .key-btn.clear:hover {
+            background: var(--danger);
+        }
+        
+        .key-btn.enter {
+            background: rgba(0, 255, 136, 0.2);
+            border-color: rgba(0, 255, 136, 0.3);
+            grid-column: span 2;
+        }
+        
+        .key-btn.enter:hover {
+            background: var(--success);
+            color: #000;
+        }
+        
+        /* Admin Panel */
+        .admin-panel {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--darker);
+            z-index: 9999;
+            overflow-y: auto;
+        }
+        
+        .admin-panel.active {
+            display: block;
+        }
+        
+        .admin-header {
+            background: rgba(10, 10, 10, 0.98);
+            padding: 1rem 2rem;
+            border-bottom: 2px solid var(--primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .admin-title {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .close-admin {
+            background: rgba(255, 68, 68, 0.2);
+            color: #ff4444;
+            border: 1px solid rgba(255, 68, 68, 0.3);
+            padding: 0.5rem 1.5rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .close-admin:hover {
+            background: var(--danger);
+            color: #fff;
+        }
+        
+        .admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 2rem;
+        }
+        
+        /* Main Container */
+        .container {
+            margin-top: 80px;
+            padding: 2rem;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 4rem 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .hero h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 0 0 30px rgba(255, 107, 0, 0.5);
+        }
+        
+        .hero p {
+            font-size: 1.3rem;
+            color: #aaa;
+            max-width: 600px;
+            margin: 0 auto 2rem;
+        }
+        
+        .btn {
+            padding: 1rem 2.5rem;
+            border: none;
+            border-radius: 10px;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(255, 107, 0, 0.4);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(255, 107, 0, 0.6);
+        }
+        
+        /* Tournament Cards */
+        .tournaments-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .tournament-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+        }
+        
+        .tournament-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+        
+        .tournament-banner {
+            height: 150px;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: rgba(255, 107, 0, 0.3);
+        }
+        
+        .tournament-type {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            border: 1px solid var(--primary);
+        }
+        
+        .tournament-prize {
+            position: absolute;
+            bottom: 1rem;
+            left: 1rem;
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.9), rgba(255, 165, 0, 0.9));
+            color: #000;
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            font-weight: 700;
+        }
+        
+        .entry-fee-badge {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            background: linear-gradient(135deg, rgba(255, 107, 0, 0.9), rgba(255, 60, 0, 0.9));
+            color: #fff;
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+        
+        .tournament-info {
+            padding: 1.5rem;
+        }
+        
+        .tournament-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .tournament-meta {
+            display: flex;
+            gap: 1.5rem;
+            color: #888;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .tournament-meta i {
+            color: var(--primary);
+        }
+        
+        .progress-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 3px;
+            transition: width 0.5s;
+        }
+        
+        .tournament-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .entry-btn {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 5px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+        }
+        
+        .entry-btn:hover {
+            background: var(--secondary);
+            transform: scale(1.05);
+        }
+        
+        /* Entry Modal for Users */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+        }
+        
+        .modal {
+            background: var(--card-bg);
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            border: 2px solid var(--primary);
+            padding: 2rem;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal h3 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #aaa;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 1rem;
+            font-family: 'Rajdhani', sans-serif;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(255, 107, 0, 0.3);
+        }
+        
+        .fee-display {
+            background: linear-gradient(135deg, rgba(255, 107, 0, 0.2), rgba(255, 60, 0, 0.2));
+            border: 2px solid var(--primary);
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .fee-amount {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            color: var(--primary);
+            font-weight: 700;
+        }
+        
+        .fee-note {
+            color: #888;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+        
+        /* Admin Sidebar */
+        .admin-sidebar {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 107, 0, 0.2);
+            height: fit-content;
+        }
+        
+        .admin-profile {
+            text-align: center;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 1.5rem;
+        }
+        
+        .admin-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        
+        .admin-menu {
+            list-style: none;
+        }
+        
+        .admin-menu li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .admin-menu a {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 1rem;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .admin-menu a:hover, .admin-menu a.active {
+            background: rgba(255, 107, 0, 0.2);
+            color: var(--primary);
+            border-left: 3px solid var(--primary);
+        }
+        
+        /* Admin Content */
+        .admin-content {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid rgba(255, 107, 0, 0.2);
+        }
+        
+        .section-title {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-box {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1.5rem;
+            border-radius: 15px;
+            text-align: center;
+            border: 1px solid rgba(255, 107, 0, 0.2);
+        }
+        
+        .stat-box i {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            color: var(--accent);
+        }
+        
+        .admin-form {
+            display: grid;
+            gap: 1rem;
+        }
+        
+        .admin-form .form-group {
+            margin-bottom: 0;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #00cc6a);
+            color: #000;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger), #cc0000);
+            color: #fff;
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning), #ff9500);
+            color: #000;
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .tournament-list-admin {
+            margin-top: 2rem;
+        }
+        
+        .tournament-item-admin {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Entries Table */
+        .entries-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        
+        .entries-table th {
+            background: rgba(255, 107, 0, 0.2);
+            padding: 1rem;
+            text-align: left;
+            color: var(--primary);
+            text-transform: uppercase;
+            font-size: 0.85rem;
+        }
+        
+        .entries-table td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .entries-table tr:hover {
+            background: rgba(255, 107, 0, 0.05);
+        }
+        
+        .whatsapp-btn {
+            background: #25d366;
+            color: #fff;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+        
+        .whatsapp-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 10px rgba(37, 211, 102, 0.5);
+        }
+        
+        .toast {
+            position: fixed;
+            top: 100px;
+            right: 2rem;
+            background: var(--card-bg);
+            border-left: 4px solid var(--success);
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            transform: translateX(400px);
+            transition: transform 0.3s;
+            z-index: 3000;
+        }
+        
+        .toast.show {
+            transform: translateX(0);
+        }
+        
+        @media (max-width: 768px) {
+            .admin-container {
+                grid-template-columns: 1fr;
+            }
+            .hero h1 {
+                font-size: 2rem;
+            }
+            .tournaments-grid {
+                grid-template-columns: 1fr;
+            }
+            .entries-table {
+                font-size: 0.9rem;
+            }
+            .entries-table th, .entries-table td {
+                padding: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+    <div class="grid-overlay"></div>
+
+    <!-- MAIN WEBSITE -->
+    <div id="main-website">
+        <nav class="navbar">
+            <div class="logo" onclick="window.scrollTo(0,0)">
+                <i class="fas fa-fire"></i>
+                FF ARENA
+            </div>
+            <ul class="nav-links">
+                <li><a onclick="scrollToSection('tournaments')" class="active">Tournaments</a></li>
+                <li><a onclick="scrollToSection('contact')">Contact</a></li>
+            </ul>
+        </nav>
+
+        <div class="container">
+            <section class="hero">
+                <h1>BATTLE FOR GLORY</h1>
+                <p>Join Free Fire tournaments. Register now and compete with the best!</p>
+                <button class="btn btn-primary" onclick="scrollToSection('tournaments')">
+                    <i class="fas fa-gamepad"></i> View Tournaments
+                </button>
+            </section>
+
+            <section id="tournaments">
+                <h2 style="font-family: 'Orbitron', sans-serif; color: var(--primary); margin-bottom: 2rem; text-align: center;">
+                    <i class="fas fa-trophy"></i> Active Tournaments
+                </h2>
+                <div class="tournaments-grid" id="tournaments-grid">
+                    <!-- Tournaments injected here -->
+                </div>
+            </section>
+
+            <section id="contact" style="margin-top: 4rem; text-align: center; padding: 3rem; background: var(--card-bg); border-radius: 20px;">
+                <h2 style="font-family: 'Orbitron', sans-serif; color: var(--primary); margin-bottom: 1rem;">
+                    <i class="fas fa-headset"></i> Contact Admin
+                </h2>
+                <p style="color: #888; margin-bottom: 1.5rem;">For any queries regarding tournaments</p>
+                <div style="display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap;">
+                    <div><i class="fas fa-user" style="color: var(--primary);"></i> Raunak Kumar</div>
+                    <div><i class="fas fa-university" style="color: var(--primary);"></i> Shyam Lal College</div>
+                    <div><i class="fas fa-phone" style="color: var(--primary);"></i> 8882675331</div>
+                    <div><i class="fas fa-envelope" style="color: var(--primary);"></i> raunakkumar09153@gmail.com</div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Hidden Admin Button -->
+    <button class="admin-secret-btn" onclick="openAdminLogin()" title="Admin Access">
+        <i class="fas fa-lock"></i>
+    </button>
+
+    <!-- Admin Login Modal -->
+    <div class="admin-modal" id="admin-login-modal">
+        <div class="admin-login-box">
+            <i class="fas fa-shield-alt" style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem;"></i>
+            <h2>ADMIN ACCESS</h2>
+            <p>Enter security code</p>
+            
+            <input type="password" class="pin-input" id="pin-display" placeholder="____" readonly>
+            
+            <div class="keypad">
+                <button class="key-btn" onclick="addDigit(1)">1</button>
+                <button class="key-btn" onclick="addDigit(2)">2</button>
+                <button class="key-btn" onclick="addDigit(3)">3</button>
+                <button class="key-btn" onclick="addDigit(4)">4</button>
+                <button class="key-btn" onclick="addDigit(5)">5</button>
+                <button class="key-btn" onclick="addDigit(6)">6</button>
+                <button class="key-btn" onclick="addDigit(7)">7</button>
+                <button class="key-btn" onclick="addDigit(8)">8</button>
+                <button class="key-btn" onclick="addDigit(9)">9</button>
+                <button class="key-btn clear" onclick="clearPin()"><i class="fas fa-backspace"></i></button>
+                <button class="key-btn" onclick="addDigit(0)">0</button>
+                <button class="key-btn enter" onclick="verifyAdmin()"><i class="fas fa-arrow-right"></i></button>
+            </div>
+            
+            <button onclick="closeAdminLogin()" style="background: transparent; color: #888; border: none; cursor: pointer;">
+                Cancel
+            </button>
+        </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div class="admin-panel" id="admin-panel">
+        <div class="admin-header">
+            <div class="admin-title">
+                <i class="fas fa-crown"></i>
+                ADMIN PANEL - RAUNAK KUMAR
+            </div>
+            <button class="close-admin" onclick="closeAdminPanel()">
+                <i class="fas fa-times"></i> Exit Admin
+            </button>
+        </div>
+
+        <div class="admin-container">
+            <aside class="admin-sidebar">
+                <div class="admin-profile">
+                    <div class="admin-avatar">RK</div>
+                    <div style="font-family: 'Orbitron', sans-serif;">Raunak Kumar</div>
+                    <div style="color: var(--primary); font-size: 0.9rem;">Super Admin</div>
+                </div>
+                <ul class="admin-menu">
+                    <li><a class="active" onclick="showAdminSection('dashboard')"><i class="fas fa-home"></i> Dashboard</a></li>
+                    <li><a onclick="showAdminSection('create')"><i class="fas fa-plus"></i> Create Tournament</a></li>
+                    <li><a onclick="showAdminSection('manage')"><i class="fas fa-edit"></i> Manage</a></li>
+                    <li><a onclick="showAdminSection('entries')"><i class="fas fa-users"></i> Entries <span id="entry-badge" style="background: var(--danger); color: #fff; padding: 0.2rem 0.5rem; border-radius: 10px; font-size: 0.7rem; margin-left: 0.5rem; display: none;">0</span></a></li>
+                    <li><a onclick="showAdminSection('settings')"><i class="fas fa-cog"></i> Settings</a></li>
+                </ul>
+            </aside>
+
+            <div class="admin-content">
+                
+                <!-- Dashboard -->
+                <div id="admin-dashboard" class="admin-section" style="display: block;">
+                    <h3 class="section-title"><i class="fas fa-home"></i> Dashboard</h3>
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <i class="fas fa-trophy"></i>
+                            <div class="stat-value" id="stat-total">0</div>
+                            <div style="color: #888; font-size: 0.9rem;">Tournaments</div>
+                        </div>
+                        <div class="stat-box">
+                            <i class="fas fa-users"></i>
+                            <div class="stat-value" id="stat-entries">0</div>
+                            <div style="color: #888; font-size: 0.9rem;">Total Entries</div>
+                        </div>
+                        <div class="stat-box">
+                            <i class="fas fa-rupee-sign"></i>
+                            <div class="stat-value" id="stat-fees">₹0</div>
+                            <div style="color: #888; font-size: 0.9rem;">Pending Fees</div>
+                        </div>
+                    </div>
+
+                    <div style="background: rgba(255, 107, 0, 0.1); border-radius: 15px; padding: 2rem; border-left: 4px solid var(--primary);">
+                        <h4 style="color: var(--primary); margin-bottom: 1rem;"><i class="fas fa-info-circle"></i> How it works</h4>
+                        <ul style="color: #aaa; line-height: 2; list-style: none;">
+                            <li><i class="fas fa-check" style="color: var(--success); margin-right: 0.5rem;"></i> Players see entry fee but pay offline</li>
+                            <li><i class="fas fa-check" style="color: var(--success); margin-right: 0.5rem;"></i> You get their phone number in admin panel</li>
+                            <li><i class="fas fa-check" style="color: var(--success); margin-right: 0.5rem;"></i> Contact them on WhatsApp for fee collection</li>
+                            <li><i class="fas fa-check" style="color: var(--success); margin-right: 0.5rem;"></i> Share room details after payment</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Create Tournament -->
+                <div id="admin-create" class="admin-section" style="display: none;">
+                    <h3 class="section-title"><i class="fas fa-plus"></i> Create New Tournament</h3>
+                    <form class="admin-form" onsubmit="createTournament(event)">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div class="form-group">
+                                <label class="form-label">Tournament Name *</label>
+                                <input type="text" class="form-input" id="admin-t-name" required placeholder="e.g., Pro Championship">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Type *</label>
+                                <select class="form-input" id="admin-t-type" required>
+                                    <option value="Solo">Solo</option>
+                                    <option value="Duo">Duo</option>
+                                    <option value="Squad">Squad</option>
+                                    <option value="Custom">Custom</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div class="form-group">
+                                <label class="form-label">Date & Time *</label>
+                                <input type="datetime-local" class="form-input" id="admin-t-date" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Map *</label>
+                                <select class="form-input" id="admin-t-map" required>
+                                    <option value="Bermuda">Bermuda</option>
+                                    <option value="Purgatory">Purgatory</option>
+                                    <option value="Kalahari">Kalahari</option>
+                                    <option value="Alpine">Alpine</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div class="form-group">
+                                <label class="form-label">Max Players/Teams *</label>
+                                <input type="number" class="form-input" id="admin-t-max" required placeholder="e.g., 100" min="2">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Entry Fee (₹) *</label>
+                                <input type="number" class="form-input" id="admin-t-fee" required placeholder="e.g., 50" min="0">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Prize Pool *</label>
+                            <input type="text" class="form-input" id="admin-t-prize" required placeholder="e.g., ₹5,000">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Description & Rules</label>
+                            <textarea class="form-input" id="admin-t-desc" rows="3" placeholder="Tournament rules, guidelines, etc..."></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save"></i> Create Tournament
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Manage Tournaments -->
+                <div id="admin-manage" class="admin-section" style="display: none;">
+                    <h3 class="section-title"><i class="fas fa-edit"></i> Manage Tournaments</h3>
+                    <div id="admin-tournament-list" class="tournament-list-admin">
+                        <p style="color: #888;">No tournaments created yet</p>
+                    </div>
+                </div>
+
+                <!-- Entries -->
+                <div id="admin-entries" class="admin-section" style="display: none;">
+                    <h3 class="section-title"><i class="fas fa-users"></i> Player Entries</h3>
+                    <p style="color: #888; margin-bottom: 1rem;">Click WhatsApp button to message player for fee collection</p>
+                    <div id="entries-list">
+                        <p style="color: #888;">No entries yet</p>
+                    </div>
+                </div>
+
+                <!-- Settings -->
+                <div id="admin-settings" class="admin-section" style="display: none;">
+                    <h3 class="section-title"><i class="fas fa-cog"></i> Security Settings</h3>
+                    
+                    <div style="background: rgba(0,0,0,0.3); padding: 2rem; border-radius: 15px; margin-bottom: 1.5rem;">
+                        <h4 style="margin-bottom: 1rem; color: var(--accent);">Change Admin Code</h4>
+                        <div class="form-group">
+                            <label class="form-label">Current Code</label>
+                            <input type="password" class="form-input" id="current-code" maxlength="4" placeholder="****">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">New Code (4 digits)</label>
+                            <input type="password" class="form-input" id="new-code" maxlength="4" placeholder="****">
+                        </div>
+                        <button class="btn btn-primary" onclick="changeCode()">
+                            <i class="fas fa-save"></i> Update Code
+                        </button>
+                    </div>
+
+                    <div style="background: rgba(255, 0, 0, 0.1); border-radius: 15px; padding: 2rem; border: 1px solid rgba(255, 0, 0, 0.3);">
+                        <h4 style="color: #ff4444; margin-bottom: 1rem;"><i class="fas fa-exclamation-triangle"></i> Danger Zone</h4>
+                        <button class="btn btn-danger" onclick="clearAllData()">
+                            <i class="fas fa-trash"></i> Delete All Data
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- User Entry Modal - SHOWS FEE BUT NO PAYMENT -->
+    <div class="modal-overlay" id="entry-modal">
+        <div class="modal">
+            <h3><i class="fas fa-ticket"></i> Tournament Entry</h3>
+            
+            <div id="entry-tournament-info" style="margin-bottom: 1.5rem; padding: 1rem; background: rgba(255,107,0,0.1); border-radius: 10px;">
+                <!-- Tournament info -->
+            </div>
+
+            <!-- Entry Fee Display -->
+            <div class="fee-display">
+                <div style="color: #888; font-size: 0.9rem; text-transform: uppercase; margin-bottom: 0.5rem;">Entry Fee</div>
+                <div class="fee-amount" id="entry-fee-amount">₹0</div>
+                <div class="fee-note">
+                    <i class="fas fa-info-circle"></i> Pay via WhatsApp after registration
+                </div>
+            </div>
+            
+            <form onsubmit="submitEntry(event)">
+                <div class="form-group">
+                    <label class="form-label">Full Name *</label>
+                    <input type="text" class="form-input" name="playerName" required placeholder="Your full name">
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label">Free Fire ID *</label>
+                        <input type="text" class="form-input" name="ffId" required placeholder="FF UID">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">In-Game Name *</label>
+                        <input type="text" class="form-input" name="ign" required placeholder="Your IGN">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Phone Number * (For fee collection)</label>
+                    <input type="tel" class="form-input" name="phone" required placeholder="10 digit mobile number" maxlength="10" pattern="[0-9]{10}">
+                    <small style="color: #888; font-size: 0.8rem;">Admin will contact you on this number for entry fee</small>
+                </div>
+
+                <div style="background: rgba(0, 255, 136, 0.1); border-radius: 10px; padding: 1rem; margin-bottom: 1.5rem; border-left: 4px solid var(--success);">
+                    <p style="color: var(--success); font-size: 0.9rem; margin: 0;">
+                        <i class="fas fa-whatsapp"></i> 
+                        After submitting, admin will message you on WhatsApp for payment.
+                    </p>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <i class="fas fa-check"></i> Submit Entry
+                </button>
+                <button type="button" class="btn btn-secondary" style="width: 100%; margin-top: 0.5rem;" onclick="closeEntryModal()">
+                    Cancel
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">
+        <div style="font-weight: 700; color: var(--success); margin-bottom: 0.5rem;" id="toast-title">Success!</div>
+        <div id="toast-message">Operation completed</div>
+    </div>
+
+    <script>
+        // Admin Configuration
+        let ADMIN_CODE = localStorage.getItem('ff_admin_code') || '2024';
+        let currentPin = '';
+        let currentTournamentId = null;
+        let currentEntryFee = 0;
+        
+        // Data
+        let tournaments = JSON.parse(localStorage.getItem('ff_tournaments')) || [];
+        let entries = JSON.parse(localStorage.getItem('ff_entries')) || [];
+
+        // Initialize
+        window.onload = function() {
+            renderTournaments();
+            updateAdminStats();
+        };
+
+        // Admin Login Functions
+        function openAdminLogin() {
+            document.getElementById('admin-login-modal').classList.add('active');
+            currentPin = '';
+            updatePinDisplay();
+        }
+
+        function closeAdminLogin() {
+            document.getElementById('admin-login-modal').classList.remove('active');
+            currentPin = '';
+        }
+
+        function addDigit(digit) {
+            if(currentPin.length < 4) {
+                currentPin += digit;
+                updatePinDisplay();
+            }
+        }
+
+        function clearPin() {
+            currentPin = currentPin.slice(0, -1);
+            updatePinDisplay();
+        }
+
+        function updatePinDisplay() {
+            document.getElementById('pin-display').value = currentPin;
+        }
+
+        function verifyAdmin() {
+            if(currentPin === ADMIN_CODE) {
+                closeAdminLogin();
+                document.getElementById('admin-panel').classList.add('active');
+                showToast('Welcome Raunak!', 'Admin access granted');
+                renderAdminTournaments();
+                renderEntries();
+            } else {
+                showToast('Error', 'Wrong code!', true);
+                currentPin = '';
+                updatePinDisplay();
+            }
+        }
+
+        function closeAdminPanel() {
+            document.getElementById('admin-panel').classList.remove('active');
+            currentPin = '';
+        }
+
+        // Admin Sections
+        function showAdminSection(section) {
+            document.querySelectorAll('.admin-section').forEach(s => s.style.display = 'none');
+            document.querySelectorAll('.admin-menu a').forEach(a => a.classList.remove('active'));
+            
+            document.getElementById('admin-' + section).style.display = 'block';
+            event.target.classList.add('active');
+            
+            if(section === 'manage') renderAdminTournaments();
+            if(section === 'entries') renderEntries();
+        }
+
+        // Create Tournament (Admin)
+        function createTournament(e) {
+            e.preventDefault();
+            
+            const tournament = {
+                id: Date.now(),
+                name: document.getElementById('admin-t-name').value,
+                type: document.getElementById('admin-t-type').value,
+                date: document.getElementById('admin-t-date').value,
+                map: document.getElementById('admin-t-map').value,
+                max: parseInt(document.getElementById('admin-t-max').value),
+                fee: parseInt(document.getElementById('admin-t-fee').value),
+                prize: document.getElementById('admin-t-prize').value,
+                desc: document.getElementById('admin-t-desc').value,
+                entries: 0,
+                status: 'upcoming',
+                createdAt: new Date().toISOString()
+            };
+            
+            tournaments.push(tournament);
+            localStorage.setItem('ff_tournaments', JSON.stringify(tournaments));
+            
+            showToast('Success', 'Tournament created successfully!');
+            e.target.reset();
+            renderTournaments();
+            updateAdminStats();
+        }
+
+        // Render for Users
+        function renderTournaments() {
+            const grid = document.getElementById('tournaments-grid');
+            
+            if(tournaments.length === 0) {
+                grid.innerHTML = '<p style="color: #888; text-align: center; grid-column: 1/-1;">No active tournaments. Check back later!</p>';
+                return;
+            }
+            
+            const sorted = tournaments.sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            grid.innerHTML = sorted.map(t => {
+                const progress = Math.min(100, ((t.entries || 0) / t.max) * 100);
+                const date = new Date(t.date);
+                const dateStr = date.toLocaleDateString('en-IN', {
+                    day: 'numeric', month: 'short', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                });
+                
+                return `
+                    <div class="tournament-card">
+                        <div class="tournament-banner">
+                            <i class="fas fa-gamepad"></i>
+                            <div class="entry-fee-badge"><i class="fas fa-rupee-sign"></i> ${t.fee}</div>
+                            <div class="tournament-type">${t.type}</div>
+                            <div class="tournament-prize"><i class="fas fa-trophy"></i> ${t.prize}</div>
+                        </div>
+                        <div class="tournament-info">
+                            <h3 class="tournament-title">${t.name}</h3>
+                            <div class="tournament-meta">
+                                <span><i class="fas fa-calendar"></i> ${dateStr}</span>
+                                <span><i class="fas fa-map"></i> ${t.map}</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${progress}%"></div>
+                            </div>
+                            <div class="tournament-footer">
+                                <span style="color: #888; font-size: 0.9rem;">${t.entries || 0}/${t.max} joined</span>
+                                <button class="entry-btn" onclick="openEntryModal(${t.id})">
+                                    Join Now
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // User Entry - SHOWS FEE BUT NO PAYMENT
+        function openEntryModal(tournamentId) {
+            const t = tournaments.find(x => x.id === tournamentId);
+            if(!t) return;
+            
+            currentTournamentId = tournamentId;
+            currentEntryFee = t.fee;
+            
+            document.getElementById('entry-tournament-info').innerHTML = `
+                <strong style="color: var(--primary); font-size: 1.1rem;">${t.name}</strong><br>
+                <span style="color: #888; font-size: 0.9rem;">
+                    <i class="fas fa-map"></i> ${t.map} | 
+                    <i class="fas fa-users"></i> ${t.type} | 
+                    <i class="fas fa-trophy"></i> ${t.prize}
+                </span>
+            `;
+            
+            document.getElementById('entry-fee-amount').textContent = '₹' + t.fee;
+            document.getElementById('entry-modal').classList.add('active');
+        }
+
+        function closeEntryModal() {
+            document.getElementById('entry-modal').classList.remove('active');
+            currentTournamentId = null;
+            currentEntryFee = 0;
+        }
+
+        function submitEntry(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const phone = formData.get('phone');
+            
+            const entry = {
+                id: Date.now(),
+                tournamentId: currentTournamentId,
+                tournamentName: tournaments.find(t => t.id === currentTournamentId)?.name || 'Unknown',
+                entryFee: currentEntryFee,
+                playerName: formData.get('playerName'),
+                ffId: formData.get('ffId'),
+                ign: formData.get('ign'),
+                phone: phone,
+                status: 'pending',
+                date: new Date().toLocaleString('en-IN')
+            };
+            
+            entries.push(entry);
+            localStorage.setItem('ff_entries', JSON.stringify(entries));
+            
+            // Update tournament entry count
+            const t = tournaments.find(x => x.id === currentTournamentId);
+            if(t) {
+                t.entries = (t.entries || 0) + 1;
+                localStorage.setItem('ff_tournaments', JSON.stringify(tournaments));
+                renderTournaments();
+            }
+            
+            showToast('Success!', 'Entry submitted! Admin will contact you for payment.');
+            closeEntryModal();
+            e.target.reset();
+            updateAdminStats();
+        }
+
+        // Admin Manage
+        function renderAdminTournaments() {
+            const list = document.getElementById('admin-tournament-list');
+            if(tournaments.length === 0) {
+                list.innerHTML = '<p style="color: #888;">No tournaments created</p>';
+                return;
+            }
+            
+            list.innerHTML = tournaments.map(t => `
+                <div class="tournament-item-admin">
+                    <div>
+                        <div style="font-weight: 700; color: var(--accent);">${t.name}</div>
+                        <div style="color: #888; font-size: 0.9rem;">
+                            ${t.type} | Fee: ₹${t.fee} | ${t.entries || 0} entries | Prize: ${t.prize}
+                        </div>
+                    </div>
+                    <button class="btn btn-danger" onclick="deleteTournament(${t.id})" style="padding: 0.5rem 1rem;">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function deleteTournament(id) {
+            if(confirm('Delete this tournament? All entries will also be deleted.')) {
+                tournaments = tournaments.filter(t => t.id !== id);
+                entries = entries.filter(e => e.tournamentId !== id);
+                localStorage.setItem('ff_tournaments', JSON.stringify(tournaments));
+                localStorage.setItem('ff_entries', JSON.stringify(entries));
+                renderAdminTournaments();
+                renderTournaments();
+                renderEntries();
+                updateAdminStats();
+                showToast('Deleted', 'Tournament removed');
+            }
+        }
+
+        // Render Entries for Admin with WhatsApp button
+        function renderEntries() {
+            const list = document.getElementById('entries-list');
+            
+            if(entries.length === 0) {
+                list.innerHTML = '<p style="color: #888;">No entries yet</p>';
+                document.getElementById('entry-badge').style.display = 'none';
+                return;
+            }
+            
+            document.getElementById('entry-badge').textContent = entries.length;
+            document.getElementById('entry-badge').style.display = 'inline';
+            
+            // Group by tournament
+            const grouped = entries.reduce((acc, entry) => {
+                if(!acc[entry.tournamentName]) acc[entry.tournamentName] = [];
+                acc[entry.tournamentName].push(entry);
+                return acc;
+            }, {});
+            
+            let html = '';
+            for(const [tName, tEntries] of Object.entries(grouped)) {
+                html += `
+                    <div style="margin-bottom: 2rem;">
+                        <h4 style="color: var(--primary); margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid rgba(255,107,0,0.3);">
+                            <i class="fas fa-trophy"></i> ${tName}
+                            <span style="color: #888; font-size: 0.9rem; margin-left: 1rem;">(${tEntries.length} entries)</span>
+                        </h4>
+                        <div style="overflow-x: auto;">
+                            <table class="entries-table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>FF ID</th>
+                                        <th>IGN</th>
+                                        <th>Phone</th>
+                                        <th>Fee</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${tEntries.map(e => `
+                                        <tr>
+                                            <td><strong>${e.playerName}</strong></td>
+                                            <td>${e.ffId}</td>
+                                            <td>${e.ign}</td>
+                                            <td>${e.phone}</td>
+                                            <td style="color: var(--primary); font-weight: 700;">₹${e.entryFee}</td>
+                                            <td>
+                                                <a href="https://wa.me/91${e.phone}?text=Hi%20${encodeURIComponent(e.playerName)},%0A%0AYour%20entry%20for%20${encodeURIComponent(e.tournamentName)}%20is%20confirmed.%0APlease%20pay%20₹${e.entryFee}%20entry%20fee.%0A%0AAdmin:%20Raunak%20Kumar" 
+                                                   target="_blank" class="whatsapp-btn">
+                                                    <i class="fab fa-whatsapp"></i> Message
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            list.innerHTML = html;
+        }
+
+        // Settings
+        function changeCode() {
+            const current = document.getElementById('current-code').value;
+            const newCode = document.getElementById('new-code').value;
+            
+            if(current !== ADMIN_CODE) {
+                showToast('Error', 'Current code wrong!', true);
+                return;
+            }
+            if(newCode.length !== 4) {
+                showToast('Error', 'Code must be 4 digits!', true);
+                return;
+            }
+            
+            ADMIN_CODE = newCode;
+            localStorage.setItem('ff_admin_code', newCode);
+            showToast('Success', 'Code changed to: ' + newCode);
+            document.getElementById('current-code').value = '';
+            document.getElementById('new-code').value = '';
+        }
+
+        function clearAllData() {
+            if(confirm('DELETE EVERYTHING? This cannot be undone!')) {
+                if(confirm('Are you absolutely sure?')) {
+                    tournaments = [];
+                    entries = [];
+                    localStorage.removeItem('ff_tournaments');
+                    localStorage.removeItem('ff_entries');
+                    renderTournaments();
+                    renderAdminTournaments();
+                    renderEntries();
+                    updateAdminStats();
+                    showToast('Cleared', 'All data deleted');
+                }
+            }
+        }
+
+        // Stats
+        function updateAdminStats() {
+            document.getElementById('stat-total').textContent = tournaments.length;
+            document.getElementById('stat-entries').textContent = entries.length;
+            
+            const totalFees = entries.reduce((sum, e) => sum + (e.entryFee || 0), 0);
+            document.getElementById('stat-fees').textContent = '₹' + totalFees;
+            
+            const badge = document.getElementById('entry-badge');
+            if(entries.length > 0) {
+                badge.textContent = entries.length;
+                badge.style.display = 'inline';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        // Utilities
+        function showToast(title, msg, isError) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-title').textContent = title;
+            document.getElementById('toast-title').style.color = isError ? '#ff4444' : 'var(--success)';
+            document.getElementById('toast-message').textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({behavior: 'smooth'});
+        }
+    </script>
+</body>
+</html>
